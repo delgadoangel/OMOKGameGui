@@ -9,6 +9,13 @@
  */
 
 public class Board {
+    /** Listen to changes on a board. */
+    public interface BoardChangeListener {
+
+        /** Called when a stone is placed at a place by a player. */
+        void stonePlaced(int x, int y, Player player);
+
+    }
 
     /** Determines the size n of an n * n board */
     private final int size;

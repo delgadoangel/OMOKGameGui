@@ -15,8 +15,9 @@ public class BoardPanel extends JPanel {
     public BoardPanel(Board board) {
         this.board = board;
         setSize(420, 420);
-
         this.dim = getSize();
+        setPreferredSize(dim);
+
         squareWidth = dim.width/15;
         border = squareWidth*14 + squareWidth/2;
         boardWidth = squareWidth*14;

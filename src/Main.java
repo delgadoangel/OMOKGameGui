@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
+import java.net.URL;
 
 public class Main extends JFrame {
 
@@ -10,21 +11,50 @@ public class Main extends JFrame {
     public Main() {
         super("Omok");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(420, 450));
+        setPreferredSize(new Dimension(450, 520));
+        setResizable(false);
 
         // Panel with Border Layout that holds all other layouts
-        var mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
+        var mainPanel = new JPanel(new BorderLayout());
 
         // Panel that holds the board and game selection to play
         var gamePanel = new JPanel();
         mainPanel.add(gamePanel, BorderLayout.CENTER);
 
-        // Tool Bar that holds options to play
-        var optionBar = new JToolBar();
-        mainPanel.add(optionBar, BorderLayout.NORTH);
 
-        optionBar.add(new JButton("Play"));
+        // Label with current game status
+        var status = new JLabel("Start Game");
+        gamePanel.add(status);
+
+        // Tool Bar that holds options to play
+        var optionTool = new JToolBar();
+        mainPanel.add(optionTool, BorderLayout.NORTH);
+
+        // Play button for toolbar
+        ImageIcon playIcon = createImageIcon("play.png");
+        Image playImg = playIcon.getImage().getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
+        playIcon = new ImageIcon(playImg);
+        JButton playButton = new JButton(playIcon);
+//        playButton.addActionListener(e -> {
+//            int confirm = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ");
+//            if (confirm != 0) {
+//                return;
+//            }
+//
+//        });
+        playButton.setToolTipText("Play a new game");
+        playButton.setFocusPainted(false);
+        optionTool.add(playButton);
+
+        // Exit button for toolbar
+        ImageIcon exitIcon = createImageIcon("exit.png");
+        Image exitImg = exitIcon.getImage().getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
+        exitIcon = new ImageIcon(exitImg);
+        JButton button = new JButton(exitIcon);
+//        button.addActionListener(e -> );
+        button.setToolTipText("Exit Omok");
+        button.setFocusPainted(false);
+        optionTool.add(button);
 
 
         game = new Game();
@@ -37,7 +67,7 @@ public class Main extends JFrame {
 
         // Making board panel and setting up its listeners
         var board = new BoardPanel(game.getBoard());
-        mainPanel.add(board);
+        gamePanel.add(board);
         var boardClick = new MouseAdapter() { // storing listener in a variable so it can later be removed
             @Override
             public void mouseClicked(MouseEvent e) { // listener for when mouse clicked
@@ -65,6 +95,15 @@ public class Main extends JFrame {
 
     public void makeMove(int x, int y) {
         game.playTurn(new Tile(x, y), game.currentPlayer());
+    }
+
+    /** Create an image icon from the given image file. */
+    private ImageIcon createImageIcon(String filename) {
+        URL imageUrl = getClass().getResource(filename);
+        if (imageUrl != null) {
+            return new ImageIcon(imageUrl);
+        }
+        return null;
     }
     public static void main(String [] args) throws IOException {
         Main omok = new Main();
