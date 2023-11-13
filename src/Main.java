@@ -10,13 +10,16 @@ public class Main extends JFrame {
     Game game;
     ImageIcon playIcon, exitIcon;
     public Main() {
+        // Setting up
         super("Omok");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(450, 520));
         setResizable(false);
         setupIcons("play.png", "exit.png");
 
+        // ------- Game initialization
         game = new Game();
+
         // Using card layout to switch between panels
         var card = new CardLayout();
         var mainPanel = new JPanel(card);
@@ -81,7 +84,7 @@ public class Main extends JFrame {
         playingPanel.add(gamePanel, BorderLayout.CENTER);
 
         // Label with current game status
-        var status = new JLabel("Start Game");
+        var status = new JLabel("Black Turn");
         gamePanel.add(status);
 
         // Tool Bar that holds options to play
@@ -94,7 +97,8 @@ public class Main extends JFrame {
             int restart = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ", "Play", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, playIcon);
             if (restart != 0)
                 return;
-            game.restartBoard();
+            status.setText("Black Turn");
+            game.gameReset();
             card.show(mainPanel, "setup");
         });
         playButton.setToolTipText("Play a new game");
@@ -112,10 +116,11 @@ public class Main extends JFrame {
         button.setFocusPainted(false);
         optionTool.add(button);
 
-        // Making board panel and setting up its listeners
+        // ------- Making board panel and setting up its listeners ------
         var board = new BoardPanel(game.getBoard());
         gamePanel.add(board);
-        var boardClick = new MouseAdapter() { // storing listener in a variable so it can later be removed
+
+        board.addMouseListener(new MouseAdapter() { // storing listener in a variable so it can later be removed
             @Override
             public void mouseClicked(MouseEvent e) { // listener for when mouse clicked
                 Point pos = e.getPoint();
@@ -133,8 +138,24 @@ public class Main extends JFrame {
             public void mouseExited(MouseEvent e) {
                 repaint();
             }
-        };
-        board.addMouseListener(boardClick); // adding listeners to the board
+        });
+
+        // ------- Game Listeners ---------
+        game.addTurnListener(turn -> {
+            if (game.currentPlayer().getClass() == CPU.class)
+                makeMove();
+
+            status.setText(game.currentPlayer().getName() + " Turn");
+        });
+
+        game.addGameEndListener(gameEnd -> {
+            if (gameEnd) {
+                if (game.hasWonGame())
+                    status.setText(game.winnerName + " has Won!");
+                else
+                    status.setText("Game Tied");
+            }
+        });
 
         setContentPane(mainPanel);
         pack();
@@ -142,6 +163,9 @@ public class Main extends JFrame {
 
     public void makeMove(int x, int y) {
         game.playTurn(new Tile(x, y), game.currentPlayer());
+    }
+    public void makeMove() {
+        game.playTurn(null, game.currentPlayer());
     }
 
     public void setupIcons(String playFile, String exitFile) {
@@ -163,9 +187,16 @@ public class Main extends JFrame {
         }
         return null;
     }
+
+
     public static void main(String [] args) throws IOException {
         Main omok = new Main();
         omok.setVisible(true);
 
+
+//        // Playing OMOK
+//        do {
+//            gameUi.promptMove();
+//        } while(!gameUi.end());
     }
 }

@@ -1,4 +1,18 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Game {
+
+    public interface TurnListener {
+        void turnChanged(boolean turn);
+    }
+
+    public interface GameEndListener {
+        void gameEnd(boolean gameEnd);
+    }
+
+    private List<TurnListener> turnListeners = new ArrayList<>();
+    private List<GameEndListener> gameEndListeners = new ArrayList<>();
     private Board board;
     private Intersection check;
     boolean gameEnd;
@@ -49,6 +63,9 @@ public class Game {
     }
 
     public void playTurn(Tile currMove, Player currP) {
+        if (currMove == null) {
+            currMove = check.getMove(currP, board);
+        }
 
         check.updateBoard(currP, currMove, board);
         if (check.isWinningSequence(currMove, p1turn)) {
@@ -60,9 +77,24 @@ public class Game {
         }
 
         p1turn = !p1turn;
+        turnListeners.forEach(listener -> listener.turnChanged(p1turn));
+        gameEndListeners.forEach(listener -> listener.gameEnd(gameEnd));
+    }
+    public void addTurnListener(TurnListener listener) {
+        turnListeners.add(listener);
+    }
+
+    public void addGameEndListener(GameEndListener listener) {
+        gameEndListeners.add(listener);
     }
 
     public boolean hasWonGame() {
         return winnerName != null;
+    }
+
+    public void gameReset() {
+        p1turn = true;
+        gameEnd = false;
+        board.clear();
     }
 }
