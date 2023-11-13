@@ -63,6 +63,9 @@ public class Game {
     }
 
     public void playTurn(Tile currMove, Player currP) {
+        if (gameEnd)
+            return;
+
         if (currMove == null) {
             currMove = check.getMove(currP, board);
         }

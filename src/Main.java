@@ -8,14 +8,14 @@ import java.net.URL;
 public class Main extends JFrame {
 
     Game game;
-    ImageIcon playIcon, exitIcon;
+    ImageIcon playIcon, exitIcon, winnerBlackIcon, winnerWhiteIcon;
     public Main() {
         // Setting up
         super("Omok");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(450, 520));
         setResizable(false);
-        setupIcons("play.png", "exit.png");
+        setupIcons("play.png", "exit.png", "black-winner.png", "white-winner.png");
 
         // ------- Game initialization
         game = new Game();
@@ -93,25 +93,12 @@ public class Main extends JFrame {
 
         // Play button for toolbar
         JButton playButton = new JButton(playIcon);
-        playButton.addActionListener(e -> {
-            int restart = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ", "Play", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, playIcon);
-            if (restart != 0)
-                return;
-            status.setText("Black Turn");
-            game.gameReset();
-            card.show(mainPanel, "setup");
-        });
         playButton.setToolTipText("Play a new game");
         playButton.setFocusPainted(false);
         optionTool.add(playButton);
 
         // Exit button for toolbar
         JButton button = new JButton(exitIcon);
-        button.addActionListener(e -> {
-            int exit = JOptionPane.showConfirmDialog(this, "Do you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, exitIcon);
-            if (exit == 0)
-                System.exit(0);
-        });
         button.setToolTipText("Exit Omok");
         button.setFocusPainted(false);
         optionTool.add(button);
@@ -120,7 +107,7 @@ public class Main extends JFrame {
         var board = new BoardPanel(game.getBoard());
         gamePanel.add(board);
 
-        board.addMouseListener(new MouseAdapter() { // storing listener in a variable so it can later be removed
+        MouseAdapter mouseListener = new MouseAdapter() { // storing listener in a variable so it can later be removed
             @Override
             public void mouseClicked(MouseEvent e) { // listener for when mouse clicked
                 Point pos = e.getPoint();
@@ -138,6 +125,24 @@ public class Main extends JFrame {
             public void mouseExited(MouseEvent e) {
                 repaint();
             }
+        };
+        board.addMouseListener(mouseListener);
+
+        // -------- Tool Bar Buttons Listeners ----------
+        playButton.addActionListener(e -> {
+            int restart = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ", "Play", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, playIcon);
+            if (restart != 0)
+                return;
+            status.setText("Black Turn");
+            game.gameReset();
+            card.show(mainPanel, "setup");
+            board.addMouseListener(mouseListener);
+        });
+
+        button.addActionListener(e -> {
+            int exit = JOptionPane.showConfirmDialog(this, "Do you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, exitIcon);
+            if (exit == 0)
+                System.exit(0);
         });
 
         // ------- Game Listeners ---------
@@ -150,10 +155,19 @@ public class Main extends JFrame {
 
         game.addGameEndListener(gameEnd -> {
             if (gameEnd) {
-                if (game.hasWonGame())
-                    status.setText(game.winnerName + " has Won!");
+                board.removeMouseListener(mouseListener);
+                if (game.hasWonGame()) {
+                    ImageIcon winnerIcon;
+                    if (game.winnerName.equals("White"))
+                        winnerIcon = winnerWhiteIcon;
+                    else
+                        winnerIcon = winnerBlackIcon;
+                    JOptionPane.showMessageDialog(this, game.winnerName + " has Won!", "Omok", JOptionPane.INFORMATION_MESSAGE, winnerIcon);
+                }
                 else
-                    status.setText("Game Tied");
+                    JOptionPane.showMessageDialog(this, "Game tied\nNo Clear Winner", "Omok", JOptionPane.INFORMATION_MESSAGE);
+
+                status.setText("Game has Ended");
             }
         });
 
@@ -162,13 +176,16 @@ public class Main extends JFrame {
     }
 
     public void makeMove(int x, int y) {
-        game.playTurn(new Tile(x, y), game.currentPlayer());
+        Tile move = new Tile(x, y);
+
+        if (game.getCheck().isValidMove(move, game.getBoard()))
+            game.playTurn(move, game.currentPlayer());
     }
     public void makeMove() {
         game.playTurn(null, game.currentPlayer());
     }
 
-    public void setupIcons(String playFile, String exitFile) {
+    public void setupIcons(String playFile, String exitFile, String winnerBlackFile, String winnerWhiteFile) {
         playIcon = createImageIcon(playFile);
         assert playIcon != null;
         Image playImg = playIcon.getImage().getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
@@ -178,6 +195,16 @@ public class Main extends JFrame {
         assert exitIcon != null;
         Image exitImg = exitIcon.getImage().getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
         exitIcon = new ImageIcon(exitImg);
+
+        winnerBlackIcon = createImageIcon(winnerBlackFile);
+        assert winnerBlackIcon != null;
+        Image winnerBlackImg = winnerBlackIcon.getImage().getScaledInstance(50, 50,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
+        winnerBlackIcon = new ImageIcon(winnerBlackImg);
+
+        winnerWhiteIcon = createImageIcon(winnerWhiteFile);
+        assert winnerWhiteIcon != null;
+        Image winnerWhiteImg = winnerWhiteIcon.getImage().getScaledInstance(50, 50,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way ;
+        winnerWhiteIcon = new ImageIcon(winnerWhiteImg);
     }
     /** Create an image icon from the given image file. */
     private ImageIcon createImageIcon(String filename) {
@@ -189,14 +216,8 @@ public class Main extends JFrame {
     }
 
 
-    public static void main(String [] args) throws IOException {
+    public static void main(String [] args) {
         Main omok = new Main();
         omok.setVisible(true);
-
-
-//        // Playing OMOK
-//        do {
-//            gameUi.promptMove();
-//        } while(!gameUi.end());
     }
 }
