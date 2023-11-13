@@ -58,6 +58,14 @@ public class Board {
     public boolean isEmpty(int x, int y) {
         return board[y][x] == 0; // checking if there is no name in place
     }
+
+    public void clear() {
+        for (int i = 0; i < board.length; i += 1) {
+            for (int j = 0; j < board[0].length; j += 1) {
+                board[i][j] = 0; // clearing board by making spaces null
+            }
+        }
+    }
     /**
      *
      */

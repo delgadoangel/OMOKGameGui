@@ -19,6 +19,8 @@ public class Game {
         return board;
     }
 
+    public void restartBoard() { board.clear(); }
+
     public void setupHumanGame(String name1, boolean p1Hints, String name2, boolean p2Hints) {
         check = new Intersection(name1, p1Hints, name2, p2Hints);
     }
