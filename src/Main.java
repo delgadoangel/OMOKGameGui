@@ -98,10 +98,10 @@ public class Main extends JFrame {
         optionTool.add(playButton);
 
         // Exit button for toolbar
-        JButton button = new JButton(exitIcon);
-        button.setToolTipText("Exit Omok");
-        button.setFocusPainted(false);
-        optionTool.add(button);
+        JButton exitButton = new JButton(exitIcon);
+        exitButton.setToolTipText("Exit Omok");
+        exitButton.setFocusPainted(false);
+        optionTool.add(exitButton);
 
         // ------- Making board panel and setting up its listeners ------
         var board = new BoardPanel(game.getBoard());
