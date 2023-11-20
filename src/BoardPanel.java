@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Iterator;
 
 public class BoardPanel extends JPanel {
     private Board board;
@@ -71,6 +72,23 @@ public class BoardPanel extends JPanel {
                     g.fillOval(x*squareWidth, y*squareWidth, squareWidth, squareWidth);
                 }
             }
+        }
+
+        // highlighting the computer's last move
+        Tile currMove = board.getLastMove();
+        if (currMove != null) {
+            g.setColor(Color.RED);
+            g.drawOval(currMove.x() * squareWidth, currMove.y() * squareWidth, squareWidth, squareWidth);
+        }
+
+        // Highlighting the winning row
+        Iterable<Tile> winningRow = board.winningRow();
+        if (winningRow != null) {
+            g.setColor(Color.GREEN);
+            Iterator<Tile> tiles = winningRow.iterator();
+            tiles.forEachRemaining(tile -> {
+                g.drawOval(tile.x() * squareWidth, tile.y() * squareWidth, squareWidth, squareWidth);
+            });
         }
     }
 

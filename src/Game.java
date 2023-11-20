@@ -80,8 +80,8 @@ public class Game {
         }
 
         p1turn = !p1turn;
-        turnListeners.forEach(listener -> listener.turnChanged(p1turn));
         gameEndListeners.forEach(listener -> listener.gameEnd(gameEnd));
+        turnListeners.forEach(listener -> listener.turnChanged(p1turn));
     }
     public void addTurnListener(TurnListener listener) {
         turnListeners.add(listener);
@@ -98,6 +98,7 @@ public class Game {
     public void gameReset() {
         p1turn = true;
         gameEnd = false;
+        winnerName = null;
         board.clear();
     }
 }

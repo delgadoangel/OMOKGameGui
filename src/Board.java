@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /** A class representing a square board.
  * Allows for the implementation of games that
  * incorporate selecting tiles.
@@ -9,19 +12,15 @@
  */
 
 public class Board {
-    /** Listen to changes on a board. */
-    public interface BoardChangeListener {
-
-        /** Called when a stone is placed at a place by a player. */
-        void stonePlaced(int x, int y, Player player);
-
-    }
 
     /** Determines the size n of an n * n board */
     private final int size;
 
     /** Stores values representing tiles in board*/
     private int [][] board;
+
+    /** Stores last move */
+    private Tile lastMove;
 
 
     /**
@@ -44,6 +43,8 @@ public class Board {
         board = new int[size][size];
     }
 
+    public Tile getLastMove() { return lastMove; }
+
     /**
      *
      */
@@ -65,6 +66,7 @@ public class Board {
                 board[i][j] = 0; // clearing board by making spaces null
             }
         }
+        lastMove = null;
     }
     /**
      *
@@ -107,6 +109,95 @@ public class Board {
      */
     public void updateBoard(Tile tile, int id) {
         board[tile.y()][tile.x()] = id;
+        lastMove = tile;
+    }
+
+    public Iterable<Tile> winningRow() {
+        Iterable<Tile> winningRow;
+        int height = board.length;
+        int width = board[0].length;
+        List<Tile> row = new ArrayList<>();
+        int tile;
+        int offset = 1;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) { // revising each tile to see if there is a row starting with this tile
+                tile = board[y][x]; // store the name of the current tile
+
+                if (tile == 0) { continue; } // skip any empty spaces
+
+                if (x <= width - 5) { // Checking horizontal rows from let to right only
+                    while (board[y][x + offset] != 0 && board[y][x + offset] == tile) { // repeat only if it is consecutive
+                        row.add(new Tile(x + offset, y));
+
+                        if (row.size() >= 4) { // If there is 5 consecutive items return this row
+                            row.add(0, new Tile(x, y)); // add the start of the row
+                            winningRow = row;
+                            return winningRow;
+                        }
+
+                        offset += 1; // Changing offset to check next element in the consecutive row
+
+                    }
+                    offset = 1;
+                    row.clear();
+                }
+
+                if (y <= height - 5) { // Checking vertical rows from top to bottom only
+                    while (board[y + offset][x] != 0 && board[y + offset][x] == tile) { // repeat only if it is consecutive
+                        row.add(new Tile(x, y + offset));
+
+                        if (row.size() >= 4) { // If there is 5 consecutive items return this row
+                            row.add(0, new Tile(x, y)); // add the start of the row
+                            winningRow = row;
+                            return winningRow;
+                        }
+
+                        offset += 1; // Changing offset to check next element in the consecutive row
+
+                    }
+                    offset = 1;
+                    row.clear();
+                }
+
+                if (x >= 4 && y <= height - 5) { // Checking diagonal rows from top right to bottom left
+                    while (board[y + offset][x - offset] != 0 && board[y + offset][x - offset] == tile) { // repeat only if it is consecutive
+                        row.add(new Tile(x - offset, y + offset));
+
+                        if (row.size() >= 4) { // If there is 5 consecutive items return this row
+                            row.add(0, new Tile(x, y)); // add the start of the row
+                            winningRow = row;
+                            return winningRow;
+                        }
+
+                        offset += 1; // Changing offset to check next element in the consecutive row
+
+                    }
+                    offset = 1;
+                    row.clear();
+                }
+
+                if (x <= width - 5 && y <= height - 5) { // Checking diagonal rows from top left to bottom right
+                    while (board[y + offset][x + offset] != 0 && board[y + offset][x + offset] == tile) { // repeat only if it is consecutive
+                        row.add(new Tile(x + offset, y + offset));
+
+                        if (row.size() >= 4) { // If there is 5 consecutive items return this row
+                            row.add(0, new Tile(x, y)); // add the start of the row
+                            winningRow = row;
+                            return winningRow;
+                        }
+
+                        offset += 1; // Changing offset to check next element in the consecutive row
+
+                    }
+                    offset = 1;
+                    row.clear();
+                }
+
+            }
+        }
+
+        return null;
     }
 
 }

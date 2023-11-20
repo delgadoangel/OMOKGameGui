@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.*;
+import java.awt.event.*;
 import java.net.URL;
 
 public class Main extends JFrame {
@@ -13,7 +11,7 @@ public class Main extends JFrame {
         // Setting up
         super("Omok");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(450, 520));
+        setPreferredSize(new Dimension(450, 540));
         setResizable(false);
         setupIcons("play.png", "exit.png", "black-winner.png", "white-winner.png");
 
@@ -87,21 +85,17 @@ public class Main extends JFrame {
         var status = new JLabel("Black Turn");
         gamePanel.add(status);
 
+        // Menu Bar that holds options to play
+        var optionMenu = new JMenuBar();
+        playingPanel.add(optionMenu, BorderLayout.NORTH);
+
+        var menu = new JMenu("Game");
+        menu.setMnemonic(KeyEvent.VK_G);
+        optionMenu.add(menu);
+
         // Tool Bar that holds options to play
         var optionTool = new JToolBar();
-        playingPanel.add(optionTool, BorderLayout.NORTH);
-
-        // Play button for toolbar
-        JButton playButton = new JButton(playIcon);
-        playButton.setToolTipText("Play a new game");
-        playButton.setFocusPainted(false);
-        optionTool.add(playButton);
-
-        // Exit button for toolbar
-        JButton exitButton = new JButton(exitIcon);
-        exitButton.setToolTipText("Exit Omok");
-        exitButton.setFocusPainted(false);
-        optionTool.add(exitButton);
+        playingPanel.add(optionTool, BorderLayout.SOUTH);
 
         // ------- Making board panel and setting up its listeners ------
         var board = new BoardPanel(game.getBoard());
@@ -128,22 +122,48 @@ public class Main extends JFrame {
         };
         board.addMouseListener(mouseListener);
 
-        // -------- Tool Bar Buttons Listeners ----------
-        playButton.addActionListener(e -> {
-            int restart = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ", "Play", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, playIcon);
-            if (restart != 0)
-                return;
-            status.setText("Black Turn");
-            game.gameReset();
-            card.show(mainPanel, "setup");
-            board.addMouseListener(mouseListener);
-        });
+        // -------- Option Actions -----------
+        OmokAction playAction = new OmokAction("Play",
+                playIcon,
+                "Play a new game",
+                KeyEvent.VK_P,
+                KeyEvent.VK_P,
+                () -> {
+                    int restart = JOptionPane.showConfirmDialog(this, "Do you want to restart game? ", "Play", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, playIcon);
+                    if (restart != 0)
+                        return;
+                    status.setText("Black Turn");
+                    game.gameReset();
+                    card.show(mainPanel, "setup");
+                    board.addMouseListener(mouseListener);
+                });
 
-        button.addActionListener(e -> {
-            int exit = JOptionPane.showConfirmDialog(this, "Do you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, exitIcon);
-            if (exit == 0)
-                System.exit(0);
-        });
+        OmokAction exitAction = new OmokAction("Exit",
+                exitIcon,
+                "Exit Omok",
+                KeyEvent.VK_E,
+                KeyEvent.VK_E,
+                () -> {
+                    int exit = JOptionPane.showConfirmDialog(this, "Do you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, exitIcon);
+                    if (exit == 0)
+                        System.exit(0);
+                });
+
+        // Play item for menu, setting Omok Action
+        var playItem = new JMenuItem(playAction);
+        menu.add(playItem);
+
+        // Exit item for menu, setting Omok Action
+        var exitItem = new JMenuItem(exitAction);
+        menu.add(exitItem);
+
+        // Play button for toolbar
+        JButton playButton = new JButton(playAction);
+        optionTool.add(playButton);
+
+        // Exit button for toolbar
+        JButton exitButton = new JButton(exitAction);
+        optionTool.add(exitButton);
 
         // ------- Game Listeners ---------
         game.addTurnListener(turn -> {
@@ -151,11 +171,11 @@ public class Main extends JFrame {
                 makeMove();
 
             status.setText(game.currentPlayer().getName() + " Turn");
+            repaint();
         });
 
         game.addGameEndListener(gameEnd -> {
             if (gameEnd) {
-                board.removeMouseListener(mouseListener);
                 if (game.hasWonGame()) {
                     ImageIcon winnerIcon;
                     if (game.winnerName.equals("White"))
@@ -167,6 +187,7 @@ public class Main extends JFrame {
                 else
                     JOptionPane.showMessageDialog(this, "Game tied\nNo Clear Winner", "Omok", JOptionPane.INFORMATION_MESSAGE);
 
+                board.removeMouseListener(mouseListener);
                 status.setText("Game has Ended");
             }
         });
@@ -219,5 +240,23 @@ public class Main extends JFrame {
     public static void main(String [] args) {
         Main omok = new Main();
         omok.setVisible(true);
+    }
+}
+
+class OmokAction extends AbstractAction {
+    private Runnable runnable;
+
+    public OmokAction(String name, ImageIcon icon, String descr, int mnemonic, int accelerator,
+                      Runnable runnable) {
+        super(name, icon);
+        this.runnable = runnable;
+        putValue(SHORT_DESCRIPTION, descr);
+        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke(accelerator, InputEvent.ALT_DOWN_MASK));
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        runnable.run();
     }
 }
